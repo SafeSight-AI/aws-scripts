@@ -76,7 +76,7 @@ def start_cam_pipeline(device, stream_name, region):
         else:
             sys.exit(f"ERROR: Stream '{stream_name}' did not become ACTIVE in time.") # Quit program with error
 
-    # Build and run GStreamer pipeline
+    # Build GStreamer pipeline
     command = [
         "gst-launch-1.0", "-v",
         "v4l2src", f"device={device}", "do-timestamp=true", "!",
@@ -87,6 +87,7 @@ def start_cam_pipeline(device, stream_name, region):
         "kvssink", "stream-name=Raspi-USB-Stream", "aws-region=us-east-1"
     ]
 
+    # Attempt to run GStreamer pipeline
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
@@ -95,16 +96,26 @@ def start_cam_pipeline(device, stream_name, region):
         print("gst-launch-1.0 not found. Make sure GStreamer is installed and in your PATH.")
 
 if __name__ == "__main__":
+    # Create command-line argument parser with a helpful description
     p = argparse.ArgumentParser(
         description="Start a GStreamer → AWS Kinesis Video Stream pipeline."
     )
+
+    # Required positional argument: video device path (e.g., /dev/video0)
     p.add_argument("device",     help="Video device, e.g. /dev/video0")
+
+    # Required positional argument: stream name (will be used or created)
     p.add_argument("stream",     help="KVS stream name to use or create")
+
+    # Optional argument: AWS region (defaults to us-east-1 if not given)
     p.add_argument(
         "--region", "-r",
         default="us-east-1",
         help="AWS region (default: us‑east‑1)"
     )
+
+    # Parse command-line arguments into variables
     args = p.parse_args()
 
+    # Launch pipeline using provided values
     start_cam_pipeline(args.device, args.stream, args.region)

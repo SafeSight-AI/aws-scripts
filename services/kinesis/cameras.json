@@ -1,0 +1,10 @@
+{
+    "test": {
+        "stream_name": "test-stream",
+        "room": "front-door",
+        "rekognition_tags": [
+            "hardhat",
+            "sleeve"
+        ]
+    }
+}

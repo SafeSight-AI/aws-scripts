@@ -9,7 +9,8 @@ import argparse
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
-def start_cam_pipeline(device, stream_name, region):
+# TODO ensure this works with wi-fi cameras
+def start_cam_pipeline(args):
     """
     Ensure the given KVS stream exists & is ready, then launch the GStreamer pipeline.
 
@@ -20,13 +21,18 @@ def start_cam_pipeline(device, stream_name, region):
     3. Launch gst-launch-1.0 with the provided device and stream name.
 
     Args:
-        device (str):        Path to the video device (e.g. '/dev/video0').
-        stream_name (str):   Name of the Kinesis Video Stream.
-        region (str):        AWS region (e.g. 'us-east-1').
+        args.cam_name (str):      Path or identifier for the camera (e.g. '/dev/video0').
+        args.stream_name (str):   Name of the Kinesis Video Stream.
+        args.region (str):        AWS region (e.g. 'us-east-1').
 
     Raises:
         SystemExit:          On AWS errors, missing creds, or if stream stays non‑ACTIVE.
     """
+
+    # Set variables for the args passed (all are required)
+    device = args.cam_name
+    stream_name = args.stream_name
+    region = args.region
 
     # Set debug logging for GStreamer
     os.environ["GST_DEBUG"] = "3"
@@ -79,13 +85,15 @@ def start_cam_pipeline(device, stream_name, region):
     # Build GStreamer pipeline
     command = [
         "gst-launch-1.0", "-v",
-        "v4l2src", f"device={device}", "do-timestamp=true", "!",
+        "v4l2src", f"device={device}", "do-timestamp=true", "!", 
+        "image/jpeg,width=800,height=600,framerate=15/1", "!",
+        "jpegdec", "!",
         "videoconvert", "!",
-        "video/x-raw,width=800,height=600,framerate=15/1", "!",
         "x264enc", "tune=zerolatency", "bitrate=1000", "speed-preset=superfast", "!",
         "h264parse", "!",
         "kvssink", "stream-name=Raspi-USB-Stream", "aws-region=us-east-1"
     ]
+
 
     # Attempt to run GStreamer pipeline
     try:

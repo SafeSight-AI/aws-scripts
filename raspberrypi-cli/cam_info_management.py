@@ -29,7 +29,8 @@ def save_camera(args):
     configs[args.cam_name] = {
         "stream_name": args.stream_name,
         "room": args.room,
-        "rekognition_tags": args.tags
+        "rekognition_tags": args.tags,
+        "aws_region": args.region
     }
     save_configs(configs)
     print(f"Saved camera '{args.cam_name}' successfully.")

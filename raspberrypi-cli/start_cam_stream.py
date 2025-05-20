@@ -16,6 +16,7 @@ import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
 # Other CLI script imports
+from cam_info_management import load_configs
 
 # TODO ensure this works with wi-fi cameras
 def start_cam_stream(args):
@@ -37,10 +38,15 @@ def start_cam_stream(args):
         SystemExit:          On AWS errors, missing creds, or if stream stays non‑ACTIVE.
     """
 
-    # Set variables for the args passed (all are required)
+    # Load camera config from json
+    configs = load_configs()
+    if args.cam_name not in configs:
+        sys.exit(f"ERROR: Camera '{args.cam_name}' not found in config file.")
+
+    cam_config = configs[args.cam_name]
+    stream_name = cam_config["stream_name"]
+    region = cam_config["aws_region"]
     device = args.cam_name
-    stream_name = args.stream_name
-    region = args.region
 
     # Set debug logging for GStreamer
     os.environ["GST_DEBUG"] = "3"
@@ -71,7 +77,7 @@ def start_cam_stream(args):
         
         # If we get to this part of the block, we do have a ResourceNotFoundException
         # This means that everything else in the call should be correct, we just need to create a new stream to use
-        print(f"Stream '{stream_name}' not found → creating new stream...")
+        print(f"Stream '{stream_name}' not found -> creating new stream...")
         kvs.create_stream(StreamName=stream_name, DataRetentionInHours=24)
 
         # Wait until stream is ACTIVE

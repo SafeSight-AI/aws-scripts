@@ -1,3 +1,10 @@
+"""
+This script contains all the camera information methods
+No other file should interact directly with the cameras.json file
+All interactions with the cameras.json file will happen here
+
+TODO save camera data to AWS and use that instead of a local json file
+"""
 import json
 import os
 
@@ -10,12 +17,12 @@ def load_configs():
     with open(CAMERA_CONFIG_FILE, "r") as f:
         return json.load(f)
 
-# Saves passed data to the JSON file
+# Saves passed data to the json file
 def save_configs(data):
     with open(CAMERA_CONFIG_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# Saves a camera to the JSON file for future reference
+# Saves a camera to the json file for future reference
 # TODO save this data to s3
 def save_camera(args):
     configs = load_configs()

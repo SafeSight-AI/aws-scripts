@@ -1,3 +1,9 @@
+"""
+This script is responsible for starting a Kinesis Video Stream
+between the AWS cloud and the specified camera, using this OS
+as a go-between
+"""
+
 # Internal OS imports
 import subprocess
 import os
@@ -9,8 +15,10 @@ import argparse
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
+# Other CLI script imports
+
 # TODO ensure this works with wi-fi cameras
-def start_cam_pipeline(args):
+def start_cam_stream(args):
     """
     Ensure the given KVS stream exists & is ready, then launch the GStreamer pipeline.
 
@@ -102,28 +110,3 @@ def start_cam_pipeline(args):
         print(f"Pipeline execution failed: {e}")
     except FileNotFoundError:
         print("gst-launch-1.0 not found. Make sure GStreamer is installed and in your PATH.")
-
-if __name__ == "__main__":
-    # Create command-line argument parser with a helpful description
-    p = argparse.ArgumentParser(
-        description="Start a GStreamer → AWS Kinesis Video Stream pipeline."
-    )
-
-    # Required positional argument: video device path (e.g., /dev/video0)
-    p.add_argument("device",     help="Video device, e.g. /dev/video0")
-
-    # Required positional argument: stream name (will be used or created)
-    p.add_argument("stream",     help="KVS stream name to use or create")
-
-    # Optional argument: AWS region (defaults to us-east-1 if not given)
-    p.add_argument(
-        "--region", "-r",
-        default="us-east-1",
-        help="AWS region (default: us‑east‑1)"
-    )
-
-    # Parse command-line arguments into variables
-    args = p.parse_args()
-
-    # Launch pipeline using provided values
-    start_cam_pipeline(args.device, args.stream, args.region)

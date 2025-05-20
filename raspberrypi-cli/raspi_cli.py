@@ -1,5 +1,5 @@
 import argparse
-from start_cam_pipeline import start_cam_pipeline
+from start_cam_stream import start_cam_stream
 from cam_info_management import save_camera, list_cameras
 
 def main():
@@ -12,7 +12,7 @@ def main():
     parser_start.add_argument("--cam_name", required=True, help="Name of the camera to start streaming (e.g. --cam_name /dev/video0)")
     parser_start.add_argument("--stream_name", required=True, help="Name of the stream on AWS. Check Wiki to ensure this matches with naming convention")
     parser_start.add_argument("--region", required=True, help="AWS Region to start the stream in (e.g. --region us-east-1)")
-    parser_start.set_defaults(func=start_cam_pipeline)
+    parser_start.set_defaults(func=start_cam_stream)
 
     # --- Camera Info Commands --- #
     parser_save = subparsers.add_parser("save_camera", help="Save a camera's to the local JSON file for later reference")

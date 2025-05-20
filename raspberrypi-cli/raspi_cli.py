@@ -1,5 +1,5 @@
 import argparse
-from camera_control import start_cam_stream, save_camera, list_cameras
+from camera_control import save_camera, list_cameras, start_cam_stream
 
 def main():
     parser = argparse.ArgumentParser(description="Camera Configuration CLI")

@@ -8,36 +8,48 @@ TODO save camera data to AWS and use that instead of a local json file
 import json
 import os
 
-CAMERA_CONFIG_FILE = os.path.expanduser("./cameras.json")
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CAMERA_CONFIG_FILE = os.path.join(SCRIPT_DIR, "./cameras.json")
 
-# Return the data in the config file if it exists
-def load_configs():
+def _load_configs():
+    """
+    PRIVATE METHOD
+
+    Returns the existing json file if it exists. If it does not
+    exist, then it returns empty
+    """
     if not os.path.exists(CAMERA_CONFIG_FILE):
         return {}
     with open(CAMERA_CONFIG_FILE, "r") as f:
         return json.load(f)
 
-# Saves passed data to the json file
-def save_configs(data):
+def _save_configs(data):
+    """
+    PRIVATE METHOD
+    
+    Saves passed data to the json file
+    """
     with open(CAMERA_CONFIG_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# Saves a camera to the json file for future reference
 # TODO save this data to s3
 def save_camera(args):
-    configs = load_configs()
+    """
+    Saves a camera to memory
+    """
+    configs = _load_configs()
     configs[args.cam_name] = {
         "stream_name": args.stream_name,
         "room": args.room,
         "rekognition_tags": args.tags,
         "aws_region": args.region
     }
-    save_configs(configs)
+    _save_configs(configs)
     print(f"Saved camera '{args.cam_name}' successfully.")
 
 # List all currently saved cameras
 def list_cameras(args):
-    configs = load_configs()
+    configs = _load_configs()
     if not configs:
         print("No cameras saved yet.")
     else:

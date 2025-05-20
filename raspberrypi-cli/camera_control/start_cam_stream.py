@@ -9,14 +9,13 @@ import subprocess
 import os
 import sys
 import time
-import argparse
 
 # External AWS imports
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
 # Other CLI script imports
-from cam_info_management import load_configs
+from .cam_info_management import _load_configs
 
 # TODO ensure this works with wi-fi cameras
 def start_cam_stream(args):
@@ -39,7 +38,7 @@ def start_cam_stream(args):
     """
 
     # Load camera config from json
-    configs = load_configs()
+    configs = _load_configs()
     if args.cam_name not in configs:
         sys.exit(f"ERROR: Camera '{args.cam_name}' not found in config file.")
 

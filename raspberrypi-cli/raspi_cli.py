@@ -3,6 +3,7 @@ from camera_control import (
     save_camera,
     update_camera,
     delete_camera,
+    load_camera,
     list_cameras,
     start_cam_stream
 )
@@ -38,6 +39,11 @@ def main():
     parser_delete = subparsers.add_parser("delete_camera", help="Delete a camera")
     parser_delete.add_argument("--cam_name", required=True, help="Name of the camera to delete")
     parser_delete.set_defaults(func=delete_camera)
+
+    parser_load = subparsers.add_parser("load_camera", help="Load a camera's information")
+    parser_load.add_argument("--cam_name", required=True, help="Name of the camera to load")
+    parser_load.set_defaults(func=load_camera)
+    
 
     parser_list = subparsers.add_parser("list_saved_cameras", help="Lists all the currently saved cameras")
     parser_list.set_defaults(func=list_cameras)

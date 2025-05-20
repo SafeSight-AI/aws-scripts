@@ -36,6 +36,13 @@ def _save_configs(data):
 def save_camera(args):
     """
     Saves a camera to memory
+
+    ### Args passed:
+    - cam_name - name of the camera in memory
+    - stream_name - name of the AWS stream
+    - region - AWS region the stream is stored in
+    - room - name of the room camera is placed in
+    - tags - rekognition tags to check for
     """
     configs = _load_configs()
     configs[args.cam_name] = {
@@ -47,8 +54,51 @@ def save_camera(args):
     _save_configs(configs)
     print(f"Saved camera '{args.cam_name}' successfully.")
 
-# List all currently saved cameras
+def update_camera(args):
+    """
+    Prompts the user to update camera configuration interactively.
+
+    ### Args Passed
+    - cam_name - name of the camera in memory
+    """
+    configs = _load_configs()
+    name = args.cam_name
+    if name not in configs:
+        print(f"Error: Camera '{name}' not found")
+        return
+    
+    camera = configs[name]
+    print(f"Updating camera '{name}'. Leave responses blank to keep current values.")
+
+    # Current values
+    current_stream = camera.get('stream_name', '')
+    current_room = camera.get('room', '')
+    current_tags = camera.get('rekognition_tags', [])
+
+    # Prompt for new values
+    new_stream = input(f"Stream name [{current_stream}]: ") or current_stream
+    new_room = input(f"Room [{current_room}]: ") or current_room
+    tags_input = input(f"Tags (space-separated) [{', '.join(current_tags)}]: ")
+    new_tags = tags_input.split() if tags_input.strip() else current_tags
+
+    # Update
+    camera['stream_name'] = new_stream
+    camera['room'] = new_room
+    camera['rekognition_tags'] = new_tags
+
+    _save_configs(configs)
+    print(f"Camera '{name}' updated successfully! New values")
+    print(f"stream_name: {new_stream}")
+    print(f"room: {new_room}")
+    print(f"rekognition_tags: {new_tags}")
+
+
 def list_cameras(args):
+    """
+    List all currently saved cameras
+
+    NOTE: No args passed
+    """
     configs = _load_configs()
     if not configs:
         print("No cameras saved yet.")

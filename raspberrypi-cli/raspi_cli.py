@@ -1,5 +1,10 @@
 import argparse
-from camera_control import save_camera, list_cameras, start_cam_stream
+from camera_control import (
+    save_camera,
+    update_camera,
+    list_cameras, 
+    start_cam_stream
+)
 
 def main():
     parser = argparse.ArgumentParser(description="Camera Configuration CLI")
@@ -24,6 +29,10 @@ def main():
     parser_save.add_argument("--tags", nargs="*", help="Any rekognition tags that the camera should test for (e.g. --tags hardhat safety-vest goggles)")
     parser_save.add_argument("--region", required=True, help="Which region the KVS will be located in (e.g. --region us-east-1)")
     parser_save.set_defaults(func=save_camera)
+
+    parser_update = subparsers.add_parser("update_camera", help="Update a camera's information")
+    parser_update.add_argument("--cam_name", required=False, help="Name of the camera to update")
+    parser_update.set_defaults(func=update_camera)
 
     parser_list = subparsers.add_parser("list_saved_cameras", help="Lists all the currently saved cameras")
     parser_list.set_defaults(func=list_cameras)

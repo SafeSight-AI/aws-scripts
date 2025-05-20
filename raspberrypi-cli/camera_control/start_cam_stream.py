@@ -38,7 +38,7 @@ def start_cam_stream(args):
     """
 
     # Load camera config from json
-    configs = _load_configs()
+    configs = _load_configs() # TODO remove for public load_camera method once made
     if args.cam_name not in configs:
         sys.exit(f"ERROR: Camera '{args.cam_name}' not found in config file.")
 

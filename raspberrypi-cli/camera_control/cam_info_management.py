@@ -52,7 +52,7 @@ def save_camera(args):
         "aws_region": args.region
     }
     _save_configs(configs)
-    print(f"Saved camera '{args.cam_name}' successfully.")
+    print(f"Saved camera '{args.cam_name}' successfully!")
 
 def update_camera(args):
     """
@@ -86,12 +86,37 @@ def update_camera(args):
     camera['room'] = new_room
     camera['rekognition_tags'] = new_tags
 
-    _save_configs(configs)
+    _save_configs(configs) # Save data to memory
+
+    # Print updated info as validation
     print(f"Camera '{name}' updated successfully! New values")
     print(f"stream_name: {new_stream}")
     print(f"room: {new_room}")
     print(f"rekognition_tags: {new_tags}")
 
+def delete_camera(args):
+    """
+    Deletes a camera from memory with cam_name as a reference
+
+    ### Args passed
+    - cam_name - name of the camera in memory
+    """
+    # Load the camera from memory
+    configs = _load_configs()
+    name = args.cam_name
+    if name not in configs:
+        print(f"Error: Camera '{name}' not found.")
+        return
+    
+    # Validation check
+    confirm = input(f"Are you sure you want to delete camera '{name}'? This cannot be undone. [y/n]: ")
+    if confirm.lower() != 'y':
+        print("Deletion cancelled.")
+        return
+    
+    del configs[name]
+    _save_configs(configs)
+    print(f"Camera '{name}' deleted successfully!")
 
 def list_cameras(args):
     """

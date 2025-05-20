@@ -2,7 +2,8 @@ import argparse
 from camera_control import (
     save_camera,
     update_camera,
-    list_cameras, 
+    delete_camera,
+    list_cameras,
     start_cam_stream
 )
 
@@ -31,8 +32,12 @@ def main():
     parser_save.set_defaults(func=save_camera)
 
     parser_update = subparsers.add_parser("update_camera", help="Update a camera's information")
-    parser_update.add_argument("--cam_name", required=False, help="Name of the camera to update")
+    parser_update.add_argument("--cam_name", required=True, help="Name of the camera to update")
     parser_update.set_defaults(func=update_camera)
+
+    parser_delete = subparsers.add_parser("delete_camera", help="Delete a camera")
+    parser_delete.add_argument("--cam_name", required=True, help="Name of the camera to delete")
+    parser_delete.set_defaults(func=delete_camera)
 
     parser_list = subparsers.add_parser("list_saved_cameras", help="Lists all the currently saved cameras")
     parser_list.set_defaults(func=list_cameras)

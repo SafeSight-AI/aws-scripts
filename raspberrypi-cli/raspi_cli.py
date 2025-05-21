@@ -17,14 +17,14 @@ def main():
     parser_start = subparsers.add_parser(
         "start_stream", 
         help="Start a video stream for a saved camera.",
-        description="Start a video stream for a saved camera."
+        description="Start a video stream for a saved camera. "
                     "NOTE: Camera must first be saved (see 'save_camera' command)"
     )
     parser_start.add_argument("--cam_name", required=True, help="Name of the camera to start streaming (e.g. --cam_name /dev/video0)")
     parser_start.set_defaults(func=start_cam_stream)
 
     # --- Camera Info Commands --- #
-    parser_save = subparsers.add_parser("save_camera", help="Save a camera's to the local JSON file for later reference")
+    parser_save = subparsers.add_parser("connect_camera", help="Save a camera's to the local JSON file for later reference")
     parser_save.add_argument("--cam_name", required=True, help="Name of the camera to save")
     parser_save.add_argument("--stream_name", required=True, help="Name of the stream on AWS. Check Wiki to ensure this matches with naming convention")
     parser_save.add_argument("--room", required=True, help="Name of the room the camera is placed in")

@@ -17,7 +17,6 @@ from botocore.exceptions import ClientError, NoCredentialsError
 # Other CLI script imports
 from .cam_info_management import load_camera
 
-# TODO ensure this works with wi-fi cameras
 def start_cam_stream(args):
     """
     Ensure the given KVS stream exists & is ready, then launch the GStreamer pipeline.
@@ -36,7 +35,7 @@ def start_cam_stream(args):
     """
 
     # Load camera config from json
-    camera = load_camera(args.cam_name) # TODO remove for public load_camera method once made
+    camera = load_camera(args.cam_name)
     
     stream_name = camera["stream_name"]
     region = camera["aws_region"]

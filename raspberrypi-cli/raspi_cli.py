@@ -13,7 +13,6 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # --- Stream Commands --- #
-    # TODO ensure this works with wi-fi cameras too
     parser_start = subparsers.add_parser(
         "start_stream", 
         help="Start a video stream for a saved camera.",

@@ -42,6 +42,8 @@ def main():
 
     parser_load = subparsers.add_parser("load_camera", help="Load a camera's information")
     parser_load.add_argument("--cam_name", required=True, help="Name of the camera to load")
+
+    # Call a lambda wrapper around load_camera as that takes in parameters instead of arguments
     parser_load.set_defaults(func=lambda args: load_camera(args.cam_name))
     
 

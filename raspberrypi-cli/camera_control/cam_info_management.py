@@ -115,23 +115,19 @@ def update_camera(args):
     print(f"room: {new_room}")
     print(f"rekognition_tags: {new_tags}")
 
-def load_camera(args):
+def load_camera(cam_name):
     """
     Loads a camera from memory with cam_name as a reference
-
-    ### Args passed
-    - cam_name - name of the camera in memory
     """
     configs = _load_configs()
-    name = args.cam_name
-    if name not in configs:
-        print(f"Error: Camera '{name}' not found.")
+    if cam_name not in configs:
+        print(f"Error: Camera '{cam_name}' not found.")
         return None
 
-    camera = configs[name]
+    camera = configs[cam_name]
     
     # Print all stored fields
-    print(f"\nLoaded camera '{name}':")
+    print(f"\nLoaded camera '{cam_name}':")
     for key, value in camera.items():
         # For lists (e.g. tags), join them; else just print
         if isinstance(value, list):

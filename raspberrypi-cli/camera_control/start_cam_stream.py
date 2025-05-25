@@ -15,7 +15,7 @@ import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
 # Other CLI script imports
-from .cam_info_management import _load_configs
+from .cam_info_management import load_camera
 
 # TODO ensure this works with wi-fi cameras
 def start_cam_stream(args):
@@ -36,14 +36,11 @@ def start_cam_stream(args):
     """
 
     # Load camera config from json
-    configs = _load_configs() # TODO remove for public load_camera method once made
-    if args.cam_name not in configs:
-        sys.exit(f"ERROR: Camera '{args.cam_name}' not found in config file.")
-
-    cam_config = configs[args.cam_name]
-    stream_name = cam_config["stream_name"]
-    region = cam_config["aws_region"]
-    conn_type = cam_config["connection_type"]
+    camera = load_camera(args.cam_name) # TODO remove for public load_camera method once made
+    
+    stream_name = camera["stream_name"]
+    region = camera["aws_region"]
+    conn_type = camera["connection_type"]
 
     if conn_type not in ["v4l2", "rtsp"]:
         sys.exit(f"ERROR: Unsupported connection_type '{conn_type}'. Must be 'v4l2' or 'rtsp'.")
@@ -98,7 +95,7 @@ def start_cam_stream(args):
 
     # Build the appropriate GStreamer command based on connection type    
     if conn_type == "v4l2": # USB connection
-        device = cam_config["device"] # Any v4l2 connections *should* have device info
+        device = camera["device"] # Any v4l2 connections *should* have device info
         if not device:
             sys.exit("ERROR: No 'device' specified for v4l2 camera.")
         
@@ -114,7 +111,7 @@ def start_cam_stream(args):
         ]
             
     elif conn_type == "rtsp": # Wifi connection
-        uri = cam_config["uri"] # Any rtsp connections *should* have uri info
+        uri = camera["uri"] # Any rtsp connections *should* have uri info
         if not uri:
             sys.exit("ERROR: No 'uri' specified for rtsp camera.")
         

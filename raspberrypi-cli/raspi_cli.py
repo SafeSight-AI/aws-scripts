@@ -43,7 +43,7 @@ def main():
 
     parser_load = subparsers.add_parser("load_camera", help="Load a camera's information")
     parser_load.add_argument("--cam_name", required=True, help="Name of the camera to load")
-    parser_load.set_defaults(func=load_camera)
+    parser_load.set_defaults(func=lambda args: load_camera(args.cam_name))
     
 
     parser_list = subparsers.add_parser("list_saved_cameras", help="Lists all the currently saved cameras")

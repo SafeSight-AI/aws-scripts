@@ -1,6 +1,6 @@
 # Expose public API
 from .cam_info_management import (
-    save_camera, 
+    connect_camera, 
     update_camera,
     delete_camera,
     list_cameras,

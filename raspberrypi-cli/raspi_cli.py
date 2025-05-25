@@ -1,6 +1,6 @@
 import argparse
 from camera_control import (
-    save_camera,
+    connect_camera,
     update_camera,
     delete_camera,
     load_camera,
@@ -27,10 +27,11 @@ def main():
     parser_save = subparsers.add_parser("connect_camera", help="Save a camera's to the local JSON file for later reference")
     parser_save.add_argument("--cam_name", required=True, help="Name of the camera to save")
     parser_save.add_argument("--stream_name", required=True, help="Name of the stream on AWS. Check Wiki to ensure this matches with naming convention")
-    parser_save.add_argument("--room", required=True, help="Name of the room the camera is placed in")
-    parser_save.add_argument("--tags", nargs="*", help="Any rekognition tags that the camera should test for (e.g. --tags hardhat safety-vest goggles)")
     parser_save.add_argument("--region", required=True, help="Which region the KVS will be located in (e.g. --region us-east-1)")
-    parser_save.set_defaults(func=save_camera)
+    parser_save.add_argument("--room", required=True, help="Name of the room the camera is placed in")
+    parser_save.add_argument("--tags", required=True, nargs="*", help="Any rekognition tags that the camera should test for (e.g. --tags hardhat safety-vest goggles)")
+    parser_save.add_argument("--connection_type", required=True, help="Connection type between the pi and camera ('rtsp' for wireless, 'v4l2' for USB)")
+    parser_save.set_defaults(func=connect_camera)
 
     parser_update = subparsers.add_parser("update_camera", help="Update a camera's information")
     parser_update.add_argument("--cam_name", required=True, help="Name of the camera to update")

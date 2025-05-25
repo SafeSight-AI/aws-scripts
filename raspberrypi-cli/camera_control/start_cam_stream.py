@@ -30,8 +30,6 @@ def start_cam_stream(args):
 
     Args:
         args.cam_name (str):      Path or identifier for the camera (e.g. '/dev/video0').
-        args.stream_name (str):   Name of the Kinesis Video Stream.
-        args.region (str):        AWS region (e.g. 'us-east-1').
 
     Raises:
         SystemExit:          On AWS errors, missing creds, or if stream stays non‑ACTIVE.
@@ -45,7 +43,10 @@ def start_cam_stream(args):
     cam_config = configs[args.cam_name]
     stream_name = cam_config["stream_name"]
     region = cam_config["aws_region"]
-    device = args.cam_name
+    conn_type = cam_config["connection_type"]
+
+    if conn_type not in ["v4l2", "rtsp"]:
+        sys.exit(f"ERROR: Unsupported connection_type '{conn_type}'. Must be 'v4l2' or 'rtsp'.")
 
     # Set debug logging for GStreamer
     os.environ["GST_DEBUG"] = "3"
@@ -64,7 +65,7 @@ def start_cam_stream(args):
         # If stream is inactive, tell the user what status it is in and exit the program
         if status != "ACTIVE":
             sys.exit(f"ERROR: Stream '{stream_name}' exists but is in status '{status}'") # Quit program with error
-
+        
         # else: ACTIVE -> reuse
         print(f"Re‑using existing ACTIVE stream '{stream_name}'.")
     except ClientError as e:
@@ -95,17 +96,35 @@ def start_cam_stream(args):
         else:
             sys.exit(f"ERROR: Stream '{stream_name}' did not become ACTIVE in time.") # Quit program with error
 
-    # Build GStreamer pipeline
-    command = [
-        "gst-launch-1.0", "-v",
-        "v4l2src", f"device={device}", "do-timestamp=true", "!", 
-        "image/jpeg,width=800,height=600,framerate=15/1", "!",
-        "jpegdec", "!",
-        "videoconvert", "!",
-        "x264enc", "tune=zerolatency", "bitrate=1000", "speed-preset=superfast", "!",
-        "h264parse", "!",
-        "kvssink", "stream-name=Raspi-USB-Stream", "aws-region=us-east-1"
-    ]
+    # Build the appropriate GStreamer command based on connection type    
+    if conn_type == "v4l2": # USB connection
+        device = cam_config["device"] # Any v4l2 connections *should* have device info
+        if not device:
+            sys.exit("ERROR: No 'device' specified for v4l2 camera.")
+        
+        command = [
+            "gst-launch-1.0", "-v",
+            "v4l2src", f"device={device}", "do-timestamp=true", "!",
+            "image/jpeg,width=800,height=600,framerate=15/1", "!",
+            "jpegdec", "!",
+            "videoconvert", "!",
+            "x264enc", "tune=zerolatency", "bitrate=1000", "speed-preset=superfast", "!",
+            "h264parse", "!",
+            "kvssink", f"stream-name={stream_name}", f"aws-region={region}"
+        ]
+            
+    elif conn_type == "rtsp": # Wifi connection
+        uri = cam_config["uri"] # Any rtsp connections *should* have uri info
+        if not uri:
+            sys.exit("ERROR: No 'uri' specified for rtsp camera.")
+        
+        command = [
+            "gst-launch-1.0", "-v",
+            "rtspsrc", f"location={uri}", "latency=100", "!",
+            "rtph264depay", "!",
+            "h264parse", "!",
+            "kvssink", f"stream-name={stream_name}", f"aws-region={region}"
+        ]
 
 
     # Attempt to run GStreamer pipeline

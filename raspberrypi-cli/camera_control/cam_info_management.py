@@ -33,7 +33,7 @@ def _save_configs(data):
         json.dump(data, f, indent=4)
 
 # TODO save this data to s3
-def save_camera(args):
+def connect_camera(args):
     """
     Saves a camera to memory
 
@@ -43,14 +43,35 @@ def save_camera(args):
     - region - AWS region the stream is stored in
     - room - name of the room camera is placed in
     - tags - rekognition tags to check for
+    - connection_type - kind of connection (either rtsp or v4l2)
     """
     configs = _load_configs()
+
+    # Add the initial camera info
     configs[args.cam_name] = {
         "stream_name": args.stream_name,
         "room": args.room,
         "rekognition_tags": args.tags,
-        "aws_region": args.region
+        "aws_region": args.region,
+        "connection_type": args.connection_type # rtsp (wifi), or v4l2 (usb)
     }
+
+    # For rtsp cameras, build the uri and add that to the configs
+    if args.connection_type == "rtsp":
+        cam_user = input("Enter the wireless camera's username: ")
+        cam_password = input("Enter the wireless camera's password: ")
+        cam_ip = input("Enter the camera's IP address: ")
+        configs[args.cam_name]["uri"] = f"rtsp://{cam_user}:{cam_password}@{cam_ip}/stream1"
+
+    # For v4l2 cameras, get the device location and add that to the configs
+    elif args.connection_type == "v4l2":
+        cam_device = input("Enter the USB camera's device location: ")
+        configs[args.cam_name]["device"] = cam_device
+    
+    else:
+        print(f"ERROR: {args.connection_type} is not a valid type, enter either 'rtsp' for wireless or 'v4l2' for USB")
+        return
+        
     _save_configs(configs)
     print(f"Saved camera '{args.cam_name}' successfully!")
 

@@ -13,3 +13,19 @@ variable "environment" {
   description = "Deployment environment (e.g. dev, staging, prod)"
   type        = string
 }
+
+variable "public_subnets" {
+  type = list(string)
+}
+
+variable "security_group_id" {
+  type = string
+}
+
+variable "ecr_image_url" {
+  type = string
+}
+
+variable "target_group_arn" {
+  type = string
+}

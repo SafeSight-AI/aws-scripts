@@ -1,2 +1,2 @@
 environment = "dev"
-vpc_id = ""
+vpc_id      = ""

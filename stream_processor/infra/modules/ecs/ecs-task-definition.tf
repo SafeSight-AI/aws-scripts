@@ -1,5 +1,5 @@
 // Create an iam role allowing execution of ecs
-resource "iam_role" "ecs_task_execution_role" {
+resource "aws_iam_role" "ecs_task_execution_role" {
     name = "ecsTaskExecutionRole-${var.environment}"
 
     assume_role_policy = jsonencode({
@@ -15,15 +15,15 @@ resource "iam_role" "ecs_task_execution_role" {
 }
 
 // Attach that role
-resource "iam_role_policy_attachment" "ecs_task_execution_policy" {
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
     role       = iam_role.ecs_task_execution_role.name
     policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 // Define the size of ecs instances
-resource "ecs_task_definition" "stream_processor" {
+resource "aws_ecs_task_definition" "stream_processor" {
     family                   = "stream-processor-task"
-    requires_compatabilities = ["FARGATE"]
+    requires_compatibilities = ["FARGATE"]
     cpu                      = "1024" // 1 vCPU
     memory                   = "2048" // 2GB
     network_mode             = "awsvpc"

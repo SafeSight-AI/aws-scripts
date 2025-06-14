@@ -1,5 +1,5 @@
 // Create instances
-resource "ecs_service" "stream_processor" {
+resource "aws_ecs_service" "stream_processor" {
     name            = "stream-processor-service"
     cluster         = ecs_cluster.stream_processor.id
     task_definition = ecs_task_definition.stream_processor.arn

@@ -10,21 +10,26 @@ variable "environment" {
   type        = string
 }
 
-# variable "public_subnets" {
-#   type = list(string)
-# }
+variable "subnet_ids" {
+  description = "List of subnet IDs for the ECS instances"
+  type        = list(string)
+}
 
-# variable "security_group_id" {
-#   type = string
-# }
+variable "container_image" {
+  description = "The Docker image to use for the ECS task"
+  type        = string
+}
 
-# variable "ecr_image_url" {
-#   type = string
-# }
+variable "container_port" {
+  description = "Port exposed by the container"
+  type        = number
+}
 
-# variable "target_group_arn" {
-#   type = string
-# }
+variable "desired_count" {
+  description = "Number of desired ECS tasks"
+  type        = number
+  default     = 1
+}
 
 # --------------- Security group variables ---------------
 variable "vpc_id" {

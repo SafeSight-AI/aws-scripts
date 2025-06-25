@@ -28,7 +28,7 @@ resource "aws_ecs_service" "stream_processor" {
 }
 
 // Define autoscaling template
-resource "appautoscaling_target" "ecs_scaling_target" {
+resource "aws_appautoscaling_target" "ecs_scaling_target" {
     max_capacity       = 10
     min_capacity       = 1
     resource_id        = "service/${ecs_cluster.stream_processor.name}/${ecs_service.stream_processor.name}" // ECS service to scale
@@ -37,7 +37,7 @@ resource "appautoscaling_target" "ecs_scaling_target" {
 }
 
 // Define autoscaling rules
-resource "appautoscaling_policy" "cpu_policy" {
+resource "aws_appautoscaling_policy" "cpu_policy" {
     name               = "cpu-scaling-policy"
     policy_type        = "TargetTrackingScaling"
     resource_id        = appautoscaling_target.resource_id

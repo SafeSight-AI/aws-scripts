@@ -16,7 +16,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 
 // Attach that role
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
-    role       = iam_role.ecs_task_execution_role.name
+    role       = aws_iam_role.ecs_task_execution_role.name
     policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -27,7 +27,7 @@ resource "aws_ecs_task_definition" "stream_processor" {
     cpu                      = "1024" // 1 vCPU
     memory                   = "2048" // 2GB
     network_mode             = "awsvpc"
-    execution_role_arn       = iam_role.ecs_task_execution_role.arn
+    execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
     container_definitions = jsonencode([{
         name         = "stream-processor" // Container name

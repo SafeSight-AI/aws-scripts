@@ -13,11 +13,6 @@ variable "security_group_id" {
   type        = string
 }
 
-variable "target_group_arn" {
-  description = "ARN of the target group for the ECS service"
-  type        = string
-}
-
 variable "ecr_image_url" {
   description = "ECR image URL for the ECS task"
   type        = string

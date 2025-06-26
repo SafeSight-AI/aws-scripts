@@ -15,6 +15,5 @@ module "ecs" {
   environment         = var.environment
   public_subnets      = var.subnet_ids
   security_group_id   = module.stream_processor_sg.security_group_id
-  target_group_arn    = module.dynamodb.target_group_arn
   ecr_image_url       = var.container_image
 }

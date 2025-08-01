@@ -19,4 +19,8 @@ resource "aws_ecs_service" "stream_processor" {
     depends_on = [
         aws_ecs_task_definition.stream_processor // Declare a dependency on ecs_task_definition
     ]
+
+    tags = merge(
+        var.tags,
+    )
 }

@@ -1,5 +1,5 @@
 // Create an iam role allowing execution of ecs
-resource "aws_iam_role" "ecs_task_execution_role" {
+resource "aws_iam_role" "stream_processor_task_execution_role" {
     name = "ecsTaskExecutionRole-${var.environment}"
 
     assume_role_policy = jsonencode({
@@ -12,11 +12,15 @@ resource "aws_iam_role" "ecs_task_execution_role" {
             Action = "sts:AssumeRole"
         }]
     })
+
+    tags = merge(
+        var.tags
+    )
 }
 
 // Attach that role
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
-    role       = aws_iam_role.ecs_task_execution_role.name
+    role       = aws_iam_role.stream_processor_task_execution_role.name
     policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -27,7 +31,7 @@ resource "aws_ecs_task_definition" "stream_processor" {
     cpu                      = "1024" // 1 vCPU
     memory                   = "2048" // 2GB
     network_mode             = "awsvpc"
-    execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+    execution_role_arn       = aws_iam_role.stream_processor_task_execution_role.arn
 
     container_definitions = jsonencode([{
         name         = "stream-processor" // Container name

@@ -31,6 +31,11 @@ variable "desired_count" {
   default     = 1
 }
 
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+}
+
 # --------------- Security group variables ---------------
 variable "vpc_id" {
   description = "The ID of the VPC in the Security Group"

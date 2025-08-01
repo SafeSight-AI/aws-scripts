@@ -18,9 +18,10 @@ resource "aws_dynamodb_table" "camera_streams" {
     // Other attributes not part of hash_key or range_key:
     // assignedAt (number): Timestamp that the stream picked up
 
-    tags = {
-        Name = "CameraStreams"
-    }
+    tags = merge(
+        { Name = "CameraStreams" },
+        var.tags
+    )
 }
 
 resource "aws_dynamodb_table" "free_streams" {

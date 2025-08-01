@@ -17,3 +17,8 @@ variable "ecr_image_url" {
   description = "ECR image URL for the ECS task"
   type        = string
 }
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+}

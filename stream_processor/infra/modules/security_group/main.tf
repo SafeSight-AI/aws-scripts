@@ -21,8 +21,7 @@ resource "aws_security_group" "stream_processor" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name        = "stream-processor-sg-${var.environment}"
-    Environment = var.environment
-  }
+  tags = merge(
+    var.tags
+  )
 }

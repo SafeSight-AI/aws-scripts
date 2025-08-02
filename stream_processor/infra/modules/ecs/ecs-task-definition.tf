@@ -9,7 +9,13 @@ resource "aws_iam_role" "stream_processor_task_execution_role" {
             Principal = {
                 Service = "ecs-tasks.amazonaws.com"
             }
-            Action = "sts:AssumeRole"
+            Action = [
+                "sts:AssumeRole",
+                "kinesisvideo:GetMedia",
+                "dynamodb:GetItem",
+                "s3:PutObject"
+            ]
+            Resource = "*"
         }]
     })
 
@@ -27,7 +33,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 // Define the size of ecs instances
 resource "aws_ecs_task_definition" "stream_processor" {
     family                   = "stream-processor-task"
-    requires_compatibilities = ["FARGATE"]
+    requires_compatibilities = ["FARGATE"] // Deploy via fargate
     cpu                      = "1024" // 1 vCPU
     memory                   = "2048" // 2GB
     network_mode             = "awsvpc"

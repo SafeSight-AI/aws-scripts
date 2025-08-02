@@ -4,3 +4,7 @@ resource "aws_s3_bucket" "this" {
 
   tags = var.tags
 }
+
+output "name" {
+    value = aws_s3_bucket.this.bucket
+}

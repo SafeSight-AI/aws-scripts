@@ -10,6 +10,12 @@ variable "environment" {
   type        = string
 }
 
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+}
+
+# --------------- Container variables ---------------
 variable "subnet_ids" {
   description = "List of subnet IDs for the ECS instances"
   type        = list(string)
@@ -31,9 +37,11 @@ variable "desired_count" {
   default     = 1
 }
 
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
+# --------------- Parameter variables ---------------
+variable "stream_processor_interval_seconds" {
+  description = "Interval in seconds for the stream processor"
+  type        = number
+  default     = 1
 }
 
 # --------------- Security group variables ---------------

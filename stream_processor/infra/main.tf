@@ -32,6 +32,7 @@ module "ssm_parameter_store" {
   stream_processor_bucket_name = module.s3.name
   tags                         = var.tags
   interval_seconds             = var.stream_processor_interval_seconds
+  region                       = var.aws_region
 }
 
 

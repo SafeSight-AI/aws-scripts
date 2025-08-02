@@ -19,3 +19,11 @@ resource "aws_ssm_parameter" "stream_processor_interval_seconds" {
   type        = "String"
   value       = var.interval_seconds
 }
+
+resource "aws_ssm_parameter" "stream_processor_region" {
+  name        = "/stream-processor/region"
+  description = "Deployment region for the stream processor"
+  type        = "String"
+  value       = var.region
+  tags        = var.tags
+}

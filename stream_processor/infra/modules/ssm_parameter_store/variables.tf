@@ -12,3 +12,8 @@ variable "interval_seconds" {
   description = "Interval in seconds for stream processor tasks"
   type        = number
 }
+
+variable "region" {
+  description = "Deployment region for the stream processor"
+  type        = string
+}

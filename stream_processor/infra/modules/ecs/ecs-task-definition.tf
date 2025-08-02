@@ -9,19 +9,34 @@ resource "aws_iam_role" "stream_processor_task_execution_role" {
             Principal = {
                 Service = "ecs-tasks.amazonaws.com"
             }
-            Action = [
-                "sts:AssumeRole",
-                "kinesisvideo:GetMedia",
-                "dynamodb:GetItem",
-                "s3:PutObject"
-            ]
-            Resource = "*"
+            Action = "sts:AssumeRole"
         }]
     })
 
     tags = merge(
         var.tags
     )
+}
+
+// Attach custom permissions to the iam role
+resource "aws_iam_role_policy" "stream_proessor_permissions" {
+    name = "stream-processor-permissions-${var.environment}"
+    role = aws_iam_role.stream_processor_task_execution_role.id
+
+    policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+            {
+                Effect = "Allow"
+                Action = [
+                    "kinesisvideo:GetMedia",
+                    "dynamodb:GetItem",
+                    "s3:PutObject"
+                ]
+                Resource = "*"
+            }
+        ]
+    })
 }
 
 // Attach that role

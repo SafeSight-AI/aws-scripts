@@ -29,7 +29,8 @@ resource "aws_iam_role_policy" "stream_proessor_permissions" {
             {
                 Effect = "Allow"
                 Action = [
-                    "kinesisvideo:GetMedia",
+                    "kinesisvideo:GetDataEndpoint",
+                    "kinesis-video-media:GetMedia",
                     "dynamodb:GetItem",
                     "s3:PutObject"
                 ]

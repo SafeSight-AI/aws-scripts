@@ -39,16 +39,38 @@ data "aws_iam_role" "lambda_exec_role" {
   name = "lambda_exec_role"  # Name of the existing role in IAM
 }
 
+# IAM policy to allow frame_enqueue_lambda to send to SQS
+resource "aws_iam_policy" "sqs_enqueue_policy" {
+  name = "SQSFrameEnqueuePolicy"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "sqs:SendMessage"
+        ],
+        Resource = "arn:aws:sqs:us-east-1:528757789458:NewFrames.fifo"
+      }
+    ]
+  })
+}
+
+# Attach the policy to the Lambda exec role
+resource "aws_iam_role_policy_attachment" "attach_sqs_enqueue_policy" {
+  role       = data.aws_iam_role.lambda_exec_role.name
+  policy_arn = aws_iam_policy.sqs_enqueue_policy.arn
+}
+
 # deploys zipped python code as a Lambda function
 # The Lambda function will read from an S3 bucket and return the latest Rekognition result
 resource "aws_lambda_function" "get_latest_rekognition_result" {
   function_name = "getLatestRekognitionResult_TF"  # Lam function name in AWS console
   runtime       = "python3.9"      # Runtime used by your Python code
   handler       = "getLatestRekognitionResult_TF.lambda_handler" 
-  # Format: <filename>.<function_name> — matches the .py file and def function
   filename         = "${path.module}/getLatestRekognitionResult_TF.zip"
   source_code_hash = filebase64sha256("${path.module}/getLatestRekognitionResult_TF.zip")
-  # Required to detect code changes — forces updates when the ZIP changes
   role = data.aws_iam_role.lambda_exec_role.arn  # Link the IAM role to this Lambda function
   environment {
     variables = {
@@ -102,51 +124,63 @@ resource "aws_lambda_function" "frame_enqueue_lambda" {
   }
 }
 
+# Lambda permission to allow S3 to trigger the frame_enqueue_lambda
+resource "aws_lambda_permission" "allow_s3_invoke" {
+  statement_id  = "AllowS3Invoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.frame_enqueue_lambda.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.my_bucket.arn
+}
+
+# Set up S3 trigger for frame enqueue lambda on new .jpg file uploads in 'frames/' directory
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.frame_enqueue_lambda.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "cameras/"   # <- change from frames/ to cameras/
+    filter_suffix       = ".jpg"
+  }
+
+  depends_on = [aws_lambda_permission.allow_s3_invoke]
+}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # API Gateway Setup to Trigger Lambda Function
 # This section builds a REST API endpoint (https://.../prod/latest) that calls your Lambda.
 # Useful for enabling external applications or users to hit the endpoint and get Rekognition results.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Create an API Gateway REST API
-# This is the entry point for your API, which will handle requests and route them to the Lambda function.
-# The API will be accessible at a URL like https://<api-id>.execute-api.<
 resource "aws_api_gateway_rest_api" "rekognition_api" {
   name        = "rekognition-api"
   description = "API Gateway for triggering Rekognition Lambda function"
 }
 
-# Create a resource in the API, which represents a path in the URL
-# This resource will be accessible at /latest, allowing users to hit this endpoint.
 resource "aws_api_gateway_resource" "rekognition_resource" {
-  rest_api_id = aws_api_gateway_rest_api.rekognition_api.id              # Attach to our API
-  parent_id   = aws_api_gateway_rest_api.rekognition_api.root_resource_id # Attach at root level
-  path_part   = "latest"                                                 # Adds /latest to the URL
+  rest_api_id = aws_api_gateway_rest_api.rekognition_api.id              
+  parent_id   = aws_api_gateway_rest_api.rekognition_api.root_resource_id 
+  path_part   = "latest"                                                 
 }
 
-# Create a GET method for the /latest resource
-# This method will be triggered when users access the /latest endpoint.
 resource "aws_api_gateway_method" "get_latest" {
   rest_api_id   = aws_api_gateway_rest_api.rekognition_api.id
   resource_id   = aws_api_gateway_resource.rekognition_resource.id
   http_method   = "GET"
-  authorization = "NONE"  # No authorization required for now so publicy accessible
-  # You can change this to "AWS_IAM" or other types for security later
+  authorization = "NONE"  
 }
 
-# Create an integration between the GET method and the Lambda function
-# This tells API Gateway how to handle requests to /latest by invoking the Lambda function.
 resource "aws_api_gateway_integration" "lambda_integration" {
   rest_api_id             = aws_api_gateway_rest_api.rekognition_api.id
   resource_id             = aws_api_gateway_resource.rekognition_resource.id
   http_method             = aws_api_gateway_method.get_latest.http_method
-  integration_http_method = "POST"  # Must be POST for Lambda
-  type                    = "AWS_PROXY"  # Full request is proxied to Lambda
+  integration_http_method = "POST"  
+  type                    = "AWS_PROXY"  
   uri                     = aws_lambda_function.get_latest_rekognition_result.invoke_arn
 }
 
-# Add a permission to allow API Gateway to invoke the Lambda function
-# This is necessary so that API Gateway can call the Lambda function when users hit the /latest
 resource "aws_lambda_permission" "api_gw_permission" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
@@ -155,10 +189,8 @@ resource "aws_lambda_permission" "api_gw_permission" {
   source_arn    = "${aws_api_gateway_rest_api.rekognition_api.execution_arn}/*/*"
 }
 
-# Create a deployment for the API Gateway
-# This makes the API live and accessible at a URL. The deployment is necessary to apply changes
 resource "aws_api_gateway_deployment" "rekognition_deployment" {
-  depends_on  = [aws_api_gateway_integration.lambda_integration]  # Ensure integration exists first
+  depends_on  = [aws_api_gateway_integration.lambda_integration]  
   rest_api_id = aws_api_gateway_rest_api.rekognition_api.id
 }
 

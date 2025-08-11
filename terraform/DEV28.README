@@ -1,0 +1,151 @@
+Frame Enqueue on Upload (DEV‑28)
+This module creates an S3→Lambda→SQS link that notifies the processing pipeline whenever a frame image is uploaded to S3.
+
+What it does
+S3 upload to bucket-zmc-0001 with key format
+cameras/{cameraId}/frames/{timestamp}.jpg
+(Example: cameras/cam-123/frames/2025-08-11T11:32:09.jpg)
+
+S3 Event Notification fires on ObjectCreated for that prefix/suffix.
+
+Lambda (SP-enqueue-frame-on-upload_TF) parses the key → builds a JSON message → sends to SQS NewFrames.fifo.
+
+Downstream systems consume the SQS message (e.g., FrameDispatcher).
+
+Repo layout (relevant parts)
+
+aws-scripts/
+├─ lambdas/
+│  ├─ frameEnqueue_TF.py
+│  ├─ connectClientToRekognition_TF.py
+│  ├─ getAllRekognitionResult_TF.py
+│  └─ getLatestRekognitionResult_TF.py
+└─ terraform/
+   ├─ main.tf
+   ├─ variables.tf (optional)
+   └─ outputs.tf   (optional)
+The Lambda ZIPs (frameEnqueue_TF.zip, etc.) live in terraform/ next to main.tf. Terraform uploads these exact files.
+
+
+Prerequisites
+AWS CLI configured for the target account/region (us-east-1).
+Terraform installed (v1.x).
+Existing IAM role lambda_exec_role with:
+AWSLambdaBasicExecutionRole (CloudWatch logging)
+Custom SQS send permission for NewFrames.fifo
+Existing S3 bucket bucket-zmc-0001 (or update main.tf to your bucket).
+Existing SQS FIFO queue NewFrames.fifo (update URL/ARN if different).
+
+Deploy
+From aws-scripts/terraform:
+terraform init
+terraform plan
+terraform apply
+
+
+What main.tf creates/configures:
+
+-Lambda functions:
+    SP-enqueue-frame-on-upload_TF (Python 3.12)
+    Rekognition helper Lambdas (getLatest…, getAll…, connect…)
+-S3 bucket notification on your bucket (prefix/suffix filter) → invokes the frame-enqueue Lambda
+-Lambda permission allowing S3 to invoke it
+-IAM policy attachment allowing Lambda to SendMessage to SQS NewFrames.fifo
+-(Optional in our setup) API Gateway + permission for Rekognition “latest” endpoint
+
+Environment variables
+For SP-enqueue-frame-on-upload_TF:
+-FRAME_QUEUE_URL → SQS queue URL for NewFrames.fifo
+-ENV → dev / prod (informational)
+For Rekognition helper Lambdas:
+-BUCKET_NAME → bucket-zmc-0001
+
+S3 key format (important)
+The Lambda expects the uploaded image key to match:
+cameras/{cameraId}/frames/{timestamp}.jpg
+-cameraId: free-form camera identifier (e.g., cam-123)
+-timestamp: ISO-like with colons in the time: YYYY-MM-DDTHH:MM:SS
+Example: 2025-08-11T11:32:09.jpg
+If you use hyphens in time (11-32-09) the function will reject it unless the handler is updated to accept multiple formats.
+
+Testing (end‑to‑end, no mocks)
+From your terminal in aws-scripts/terraform:
+$Region   = "us-east-1"
+$Bucket   = "bucket-zmc-0001"
+$CameraId = "cam-123"
+$Timestamp = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss")
+$Key = "cameras/$CameraId/frames/$Timestamp.jpg"
+
+aws s3 cp .\test_frame.jpg "s3://$Bucket/$Key" --region $Region
+
+
+Then verify:
+CloudWatch Logs → /aws/lambda/SP-enqueue-frame-on-upload_TF → newest log stream should show the invocation.
+SQS (Console → NewFrames.fifo) → Send and receive messages → Poll for messages → you should see a message body with cameraId, s3Key, timestamp, etc.
+
+Optional: manual Lambda invoke (mock)
+Useful for first‑time log group creation or debugging. Create a file like this and invoke:
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventName": "ObjectCreated:Put",
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "bucket": { "name": "bucket-zmc-0001" },
+        "object": { "key": "cameras/cam-123/frames/2025-08-11T11:32:09.jpg", "size": 12345 }
+      }
+    }
+  ]
+}
+
+aws lambda invoke \
+  --function-name SP-enqueue-frame-on-upload_TF \
+  --payload fileb://s3_test_event.json \
+  --region us-east-1 out.json
+
+You can delete s3_test_event.json after testing. It’s not needed for normal operation.
+
+
+
+Troubleshooting !
+
+No CloudWatch log group /aws/lambda/SP-enqueue-frame-on-upload_TF
+Attach AWSLambdaBasicExecutionRole to lambda_exec_role, re‑invoke once.
+
+Lambda runs but no SQS message
+Check Lambda logs for errors. Ensure FRAME_QUEUE_URL is correct and IAM policy allows sqs:SendMessage to that queue ARN.
+
+Lambda never triggers on upload
+Confirm bucket notification filter:
+
+prefix = cameras/
+
+suffix = .jpg
+Confirm upload key matches that pattern and region is us-east-1.
+
+“Invalid key format”
+Make sure your object key matches cameras/{cameraId}/frames/{timestamp}.jpg and the timestamp uses colons.
+
+“KeyError: 'Records'” on manual invoke
+Your test payload must include the top-level "Records" array (see mock above) and be saved as UTF‑8 (no BOM).
+
+Updating function code
+Update the .py in lambdas/.
+
+Re‑zip into terraform/ with the exact file names Terraform references:
+
+frameEnqueue_TF.zip
+
+getLatestRekognitionResult_TF.zip, etc.
+
+terraform apply (Terraform uses source_code_hash to detect and deploy changes).
+
+Clean up (optional)
+Remove S3 objects you uploaded for testing.
+
+If you created any temporary files (like s3_test_event.json), it’s fine to delete them.
+
+To destroy the infra managed by this directory: terraform destroy (only if that’s intended).

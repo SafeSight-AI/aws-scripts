@@ -39,6 +39,12 @@ data "aws_iam_role" "lambda_exec_role" {
   name = "lambda_exec_role"  # Name of the existing role in IAM
 }
 
+# Ensure the Lambda exec role always has CloudWatch logging perms
+resource "aws_iam_role_policy_attachment" "lambda_basic_logs" {
+  role       = data.aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
 # IAM policy to allow frame_enqueue_lambda to send to SQS
 resource "aws_iam_policy" "sqs_enqueue_policy" {
   name = "SQSFrameEnqueuePolicy"

@@ -6,3 +6,7 @@ __pycache__/
 # Virtual environment folder
 venv/
 .env/
+
+# Items created by python scripts
+frame.jpg
+temp.mkv

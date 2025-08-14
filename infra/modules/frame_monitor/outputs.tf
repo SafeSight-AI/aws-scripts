@@ -18,3 +18,9 @@ output "newframes_queue_url" {
   description = "URL of the NewFrames SQS queue"
   value       = data.aws_sqs_queue.newframes.url
 }
+
+output "task_definition_arn" {
+  description = "ARN of the registered ECS task definition"
+  value       = aws_ecs_task_definition.frame_monitor.arn
+}
+

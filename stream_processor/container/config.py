@@ -3,6 +3,17 @@ import boto3
 ssm = boto3.client('ssm')
 
 def get_ssm_parameter(name, with_decryption=False):
+    """
+    Retrieve the value of an AWS SSM parameter.
+    Args:
+        name (str): The name of the SSM parameter to retrieve.
+        with_decryption (bool, optional): Whether to decrypt the parameter value if it is encrypted. Defaults to False.
+    Returns:
+        str: The value of the requested SSM parameter.
+    Raises:
+        botocore.exceptions.ClientError: If the parameter does not exist or there is an error retrieving it.
+    """
+
     response = ssm.get_parameter(
         Name=name,
         WithDecryption=with_decryption

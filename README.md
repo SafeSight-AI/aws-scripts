@@ -4,9 +4,9 @@ This repository contains scripts and infrastructure code for SafeSight-AI's clou
 
 ## Overview
 
-- **Stream Processor**: Python code and Terraform for ingesting, processing, and storing video streams, including real-time frame capture, S3 uploads, and integration with AWS Kinesis Video Streams, DynamoDB, and SSM Parameter Store.
+- **Stream Processor**: AWS-based microservice, hosted using ECS. Uses Python code and Terraform for ingesting, processing, and storing video streams, including real-time frame capture, S3 uploads, and integration with AWS Kinesis Video Streams, DynamoDB, and SSM Parameter Store.
 - **Raspberry Pi CLI**: Command-line tools for managing camera devices and streams, including local configuration and AWS Kinesis Video Stream setup.
-- **Tech Demo**: Example scripts for capturing images and sending them to AWS Rekognition APIs.
+- **Tech Demo**: A simple PoC that we can use for pitching to investors or anyone else. Uses a simple connection to detect people within the frame, and see if they are wearing hard hats. Connects a computer to the AWS backend, and creates an API call to signal the new frame upload to the frontend
 - **Infrastructure**: Modular Terraform code for provisioning AWS resources (ECS, S3, DynamoDB, Security Groups, SSM Parameters).
 
 ## Directory Structure
@@ -14,7 +14,7 @@ This repository contains scripts and infrastructure code for SafeSight-AI's clou
 ```
 aws-scripts/
 ├── stream_processor/
-│   ├── container/         # Python code for KVS, S3, frame capture
+│   ├── container/         # ECS template. Python code for KVS, S3, frame capture
 │   ├── infra/             # Terraform modules and configs
 │   ├── TEMP/              # Utility scripts
 │   └── README.md          # Component documentation
@@ -62,7 +62,7 @@ terraform apply
 
 ## Usage
 
-- **Stream Processor**: Run frame capture and upload scripts from `stream_processor/container/`.
+- **Stream Processor**: Host the container template in the cloud via Terraform in the `stream_processor/infra` subfolder 
 - **Camera CLI**: Use `raspberrypi-cli/raspi_cli.py` to manage cameras and start streams.
 - **Tech Demo**: Run `tech-demo/capture_photo.py` to test image capture and API integration.
 
@@ -74,10 +74,14 @@ terraform apply
 - Security Groups for network access
 
 ## Contributing
-Contributions are welcome! Please open issues or submit pull requests.
+While the code is open-source, we are not open to commits from people online. If you are interested in contributing please reach out to [adomaitisandrew@gmail.com](adomaitisandrew@gmail.com)
 
 ## License
-MIT License
+Copyright (c) 2025 SafeSight-AI
+
+You may view and read this code for personal or evaluative purposes only.
+You may not copy, modify, redistribute, or use this code in any product or service
+without express written permission from SafeSight-AI.
 
 ## Contact
-For questions or support, contact the SafeSight-AI team.
+For questions or support, contact [adomaitisandrew@gmail.com](adomaitisandrew@gmail.com)
